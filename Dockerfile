@@ -29,9 +29,8 @@ RUN tar -C $ANDROID_HOME -zxvf $DOWNLOAD_DIR/$ANDROID_SDK_DIST --strip-component
 RUN rm -f $DOWNLOAD_DIR/$ANDROID_SDK_DIST
 RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | $ANDROID_HOME/tools/android update sdk -u --filter platform-tool,tool,android-$ANDROID_SDK_VERSION,extra,`$ANDROID_HOME/tools/android list sdk --extended | grep -oE '"build-tools-[^"]+"' | grep -oE '[^"]+' | head -n1`
 
-RUN apt-get install -y nodejs git npm
-RUN ln -s "$(which nodejs)" /usr/bin/node
-
+RUN apt-get install -y git npm
 RUN apt-get install -y lib32stdc++6 lib32z1 # `codova build` will fail without this
-RUN npm install -g cordova
+RUN npm install -g cordova gulp bower
+
 
