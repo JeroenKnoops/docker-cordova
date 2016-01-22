@@ -1,36 +1,47 @@
-FROM ubuntu:14.04
-MAINTAINER Jeroen Knoops <jeroen.knoops@philips.com>
+FROM ruby:2.1.2
 
-ENV DOWNLOAD_DIR /tmp/downloads 
-ENV ANDROID_SDK_DIST_URL http://dl.google.com/android/android-sdk_r24.0.2-linux.tgz
-ENV ANDROID_SDK_DIST android-sdk.tgz
-ENV ANDROID_HOME_ROOT /android
-ENV ANDROID_SDK_VERSION 19
+RUN apt-get update && apt-get -y install apt-utils \
+		       build-essential \
+		       git-core \
+		       curl libssl-dev \
+		       libreadline-dev \
+		       zlib1g zlib1g-dev \
+		       libmysqlclient-dev \
+		       libcurl4-openssl-dev \
+		       libxslt-dev libxml2-dev \
+		       xvfb procps \
+		       nodejs-legacy npm
 
-ENV ANDROID_HOME $ANDROID_HOME_ROOT/sdk
-ENV PATH $PATH:$ANDROID_HOME/tools
-ENV PATH $PATH:$ANDROID_HOME/platform-tools
-ENV PATH $PATH:$ANDROID_HOME/build-tools
+ENV CONTAINER_INIT /usr/local/bin/init-container
+RUN echo '#!/usr/bin/env bash' > $CONTAINER_INIT ; chmod +x $CONTAINER_INIT
 
-RUN apt-get update && apt-get install -y \
-    curl \
-    git \
-    unzip
+RUN gem install bundler
+RUN bundle config --global path /cache/bundle
+RUN echo 'bundle config --global jobs $(cat /proc/cpuinfo | grep -c processor)' >> $CONTAINER_INIT
 
-RUN mkdir $DOWNLOAD_DIR
-RUN mkdir $ANDROID_HOME_ROOT
-RUN mkdir $ANDROID_HOME
+ENV LANG en_US.UTF-8
+ENV GEM_HOME /cache
 
-RUN apt-get update
-RUN apt-get install -y wget default-jdk ant
+# Android SDK is i386 only
+RUN dpkg --add-architecture i386 && \
+      apt-get update -y && \
+      apt-get install -y libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 wget default-jdk && \
+      rm -rf /var/lib/apt/lists/* && \
+      apt-get autoremove -y && \
+      apt-get clean
 
-RUN wget -O $DOWNLOAD_DIR/$ANDROID_SDK_DIST $ANDROID_SDK_DIST_URL
-RUN tar -C $ANDROID_HOME -zxvf $DOWNLOAD_DIR/$ANDROID_SDK_DIST --strip-components=1
-RUN rm -f $DOWNLOAD_DIR/$ANDROID_SDK_DIST
-RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | $ANDROID_HOME/tools/android update sdk -u --filter platform-tool,tool,android-$ANDROID_SDK_VERSION,extra,`$ANDROID_HOME/tools/android list sdk --extended | grep -oE '"build-tools-[^"]+"' | grep -oE '[^"]+' | head -n1`
+ENV JAVA_HOME /usr/lib/jvm/default-java
 
-RUN apt-get install -y git npm
-RUN apt-get install -y lib32stdc++6 lib32z1 # `codova build` will fail without this
-RUN npm install -g cordova gulp bower
+ENV ANDROID_SDK_VERSION 24.4.1
+ENV ANDROID_API_LEVEL android-23
+ENV ANDROID_BUILD_TOOLS_VERSION 23.0.1
+ENV ANDROID_HOME /opt/android-sdk-linux
+ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
 
+RUN cd /opt && \
+  wget -q http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz && \
+  tar -xzf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz && \
+  rm android-sdk_r$ANDROID_SDK_VERSION-linux.tgz && \
+echo y | android update sdk --no-ui -a --filter extra,tools,platform-tools,${ANDROID_API_LEVEL},build-tools-${ANDROID_BUILD_TOOLS_VERSION}
 
+RUN apt-get update && apt-get -y install ant
