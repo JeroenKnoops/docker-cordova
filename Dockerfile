@@ -44,4 +44,6 @@ RUN cd /opt && \
   rm android-sdk_r$ANDROID_SDK_VERSION-linux.tgz && \
 echo y | android update sdk --no-ui -a --filter extra,tools,platform-tools,${ANDROID_API_LEVEL},build-tools-${ANDROID_BUILD_TOOLS_VERSION}
 
+RUN gem install compass
+
 RUN apt-get update && apt-get -y install ant
