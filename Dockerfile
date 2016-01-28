@@ -34,8 +34,8 @@ RUN dpkg --add-architecture i386 && \
 ENV JAVA_HOME /usr/lib/jvm/default-java
 
 ENV ANDROID_SDK_VERSION 24.4.1
-ENV ANDROID_API_LEVEL android-23
-ENV ANDROID_BUILD_TOOLS_VERSION 23.0.1
+ENV ANDROID_API_LEVEL android-22
+ENV ANDROID_BUILD_TOOLS_VERSION 22.0.1
 ENV ANDROID_HOME /opt/android-sdk-linux
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
 
