@@ -10,7 +10,8 @@ RUN apt-get update && apt-get -y install apt-utils \
 		       libcurl4-openssl-dev \
 		       libxslt-dev libxml2-dev \
 		       xvfb procps \
-		       nodejs-legacy npm
+		       nodejs-legacy npm \
+		       ruby-compass
 
 ENV CONTAINER_INIT /usr/local/bin/init-container
 RUN echo '#!/usr/bin/env bash' > $CONTAINER_INIT ; chmod +x $CONTAINER_INIT
@@ -43,10 +44,5 @@ RUN cd /opt && \
   tar -xzf android-sdk_r$ANDROID_SDK_VERSION-linux.tgz && \
   rm android-sdk_r$ANDROID_SDK_VERSION-linux.tgz && \
 echo y | android update sdk --no-ui -a --filter extra,tools,platform-tools,${ANDROID_API_LEVEL},build-tools-${ANDROID_BUILD_TOOLS_VERSION}
-
-RUN gem install sass
-RUN gem install compass
-
-RUN compass -v
 
 RUN apt-get update && apt-get -y install ant
